@@ -1,7 +1,6 @@
 This code implements the following article:
 'Two forecasting model selection methods based on time series image feature augmentation' 
 Wentao Jiang, Quan Wang1 & Hongbo Li
-www.nature.com/scientificreports
 
 # IFFA-TSCI-CNN: Time Series Forecasting Model Selection
 
