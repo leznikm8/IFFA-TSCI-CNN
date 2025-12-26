@@ -1,0 +1,53 @@
+'''
+Created on 11 Dec 2025
+
+@author: Dr. Mike
+'''
+import numpy as np
+from scipy.signal import convolve2d
+from config import Config
+
+try:
+    from statsmodels.tsa.arima.model import ARIMA
+except ImportError:
+    import subprocess
+    subprocess.check_call(['pip', 'install', 'statsmodels'])
+    from statsmodels.tsa.arima.model import ARIMA
+    
+class InformationFusionFeatureAugmentation:
+    """Fuses information from multiple time series images"""
+    
+    def __init__(self, weights: np.ndarray = None):
+        """Initialize IFFA with fusion weights"""
+        if weights is None:
+            self.weights = np.array([0.4, 0.35, 0.25])
+        else:
+            self.weights = weights
+    
+    def fuse_images(self, gaf: np.ndarray, mtf: np.ndarray, rp: np.ndarray) -> np.ndarray:
+        """Fuse three image representations through weighted combination"""
+        stacked = np.stack([gaf, mtf, rp], axis=-1)
+        fused = np.average(stacked, axis=-1, weights=self.weights)
+        return fused
+    
+    def augment_features(self, fused: np.ndarray) -> np.ndarray:
+        """Create augmented features through preprocessing"""
+        channel1 = fused
+        
+        kernel = np.ones((3, 3)) / 9
+        channel2 = convolve2d(fused, kernel, mode='same')
+        
+        edge_kernel = np.array([[-1, -1, -1],
+                                [-1,  8, -1],
+                                [-1, -1, -1]])
+        channel3 = convolve2d(fused, edge_kernel, mode='same')
+        channel3 = (channel3 - channel3.min()) / (channel3.max() - channel3.min() + 1e-8)
+        
+        augmented = np.stack([channel1, channel2, channel3], axis=-1)
+        return augmented
+    
+    def process(self, gaf: np.ndarray, mtf: np.ndarray, rp: np.ndarray) -> np.ndarray:
+        """Complete IFFA pipeline"""
+        fused = self.fuse_images(gaf, mtf, rp)
+        augmented = self.augment_features(fused)
+        return augmented
