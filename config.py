@@ -13,10 +13,10 @@ class Config:
     N_BINS = 20
     RECURRENCE_THRESHOLD = 0.1
     
-    # ARIMA optimization parameters
-    MAX_P = 3
-    MAX_D = 2
-    MAX_Q = 3
+    # ARIMA optimisation parameters
+    MAX_P = 5
+    MAX_D = 3
+    MAX_Q = 5
     ARIMA_TEST_SIZE = 0.2
     
     # CNN training parameters
@@ -34,3 +34,4 @@ class Config:
     N_SAMPLES = 30
     TS_LENGTH = 150
     RANDOM_SEED = 11
+
