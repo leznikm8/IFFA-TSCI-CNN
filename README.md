@@ -127,9 +127,9 @@ IMG_SIZE = 64              # Resolution of encoded images
 N_BINS = 20               # Quantisation bins for MTF
 
 # ARIMA optimisation
-MAX_P = 3                 # Max autoregressive order
-MAX_D = 2                 # Max differencing order
-MAX_Q = 3                 # Max moving average order
+MAX_P = 5                 # Max autoregressive order
+MAX_D = 3                 # Max differencing order
+MAX_Q = 5                 # Max moving average order
 
 # CNN training
 BATCH_SIZE = 32           # Training batch size
