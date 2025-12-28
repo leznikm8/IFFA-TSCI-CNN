@@ -49,24 +49,6 @@ iffa_tsci_cnn_project/
 - Python 3.8+
 - CUDA 11.0+ (optional, for GPU acceleration)
 
-### Setup
-
-1. **Clone/Download the project**
-```bash
-   cd iffa_tsci_cnn_project
-```
-
-2. **Create virtual environment** (recommended)
-```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
-
-3. **Install dependencies**
-```bash
-   pip install -r requirements.txt
-```
-
 ## Quick Start
 
 ### 1. Run Full Pipeline
