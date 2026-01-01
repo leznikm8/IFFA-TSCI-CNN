@@ -18,6 +18,8 @@ Key Parameters:
 - DEVICE: Automatically detects GPU availability
 '''
 import torch
+import time
+
 
 class Config:
     """Global configuration for IFFA-TSCI-CNN project"""
@@ -45,6 +47,9 @@ class Config:
     N_SPLITS = 5
     
     # Data generation parameters
-    N_SAMPLES = 30
-    TS_LENGTH = 150
-    RANDOM_SEED = 11
+    N_SAMPLES = 144 #MAX_P * MAX_D * MAX_Q
+    TS_LENGTH = 160
+    RANDOM_SEED = int(time.time() * 1000) % (2**31)  # Keep it within int32 range
+    
+   # Permutation tuple to convert NHWC → NCHW for PyTorch
+    NHWC_TO_NCHW = (0, 3, 1, 2)
