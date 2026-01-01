@@ -1,31 +1,30 @@
 '''
-Created on 17 Dec 2025
+Created on 16 Dec 2025
 
 @author: Dr. Mike
-Stage 3: ARIMA Parameter Optimisation (AIC Version)
+Stage 3: ARIMA Parameter Optimisation
 
-Alternative implementation using AIC (Akaike Information Criterion) instead of MAPE
-for selecting optimal ARIMA(p,d,q) parameters.
+Performs grid search to find optimal ARIMA(p,d,q) parameters for each time series
+using MAPE (Mean Absolute Percentage Error) as the selection criterion.
 
-Key Differences from MAPE Version:
-1. Criterion: AIC instead of MAPE
-   - AIC penalizes model complexity
-   - Avoids overfitting
-   - Lower AIC is better
+Optimization Process:
+1. Splits time series: 80% training, 20% testing
+2. Tests all combinations of (p,d,q):
+   - p (AR order): 0 to MAX_P
+   - d (Differencing): 0 to MAX_D
+   - q (MA order): 0 to MAX_Q
+   - Default: 4 x 3 x 4 = 48 models per series
    
-2. Data Usage: Fits on full time series
-   - No train/test split needed
-   - Uses all available information
-   - Faster computation
+3. For each (p,d,q) combination:
+   - Fits ARIMA on training data
+   - Forecasts test set
+   - Calculates MAPE (prediction error %)
    
-3. Grid Search: Tests all (p,d,q) combinations
-   - Same search space as MAPE version
-   - AIC calculated for each model
-   
-Output: Best ARIMA(p,d,q) tuple and AIC value for each time series
+4. Selects order with lowest MAPE
 
-To use this version instead of MAPE, change the import in stage6_pipeline.py:
-    from .stage3_arima_evaluation_aic import ARIMAParameterOptimizerAIC
+Output: Best ARIMA(p,d,q) tuple and MAPE value for each time series
+
+These optimal orders become training labels for the CNN classifier.
 '''
 import numpy as np
 from config import Config
@@ -39,8 +38,8 @@ except ImportError:
     from statsmodels.tsa.arima.model import ARIMA
 
 
-class ARIMAParameterOptimizerAIC:
-    """Evaluates ARIMA models and finds optimal (p, d, q) using AIC"""
+class ARIMAParameterOptimizer:
+    """Evaluates ARIMA models and finds optimal (p, d, q)"""
     
     def __init__(self, ts: np.ndarray, max_p: int = Config.MAX_P, 
                  max_d: int = Config.MAX_D, max_q: int = Config.MAX_Q):
@@ -50,12 +49,25 @@ class ARIMAParameterOptimizerAIC:
         self.max_d = max_d
         self.max_q = max_q
         self.best_order = None
-        self.best_aic = float('inf')
+        self.best_mape = float('inf')
         self.results_history = {}
     
-    def find_optimal_order(self) -> tuple:
-        """Grid search for optimal ARIMA parameters using AIC criterion"""
-        print(f"  Grid searching ARIMA parameters using AIC (p={self.max_p}, d={self.max_d}, q={self.max_q})...")
+    @staticmethod
+    def calculate_mape(actual: np.ndarray, predicted: np.ndarray) -> float:
+        """Calculate Mean Absolute Percentage Error"""
+        mask = actual != 0
+        if mask.sum() == 0:
+            return float('inf')
+        return np.mean(np.abs((actual[mask] - predicted[mask]) / actual[mask])) * 100
+    
+    def find_optimal_order(self, test_size: float = Config.ARIMA_TEST_SIZE) -> tuple:
+        """Grid search for optimal ARIMA parameters"""
+        n = len(self.ts)
+        train_size = int(n * (1 - test_size))
+        train_ts = self.ts[:train_size]
+        test_ts = self.ts[train_size:]
+        
+        print(f"  Grid searching ARIMA parameters (p={self.max_p}, d={self.max_d}, q={self.max_q})...")
         
         successful = 0
         
@@ -63,18 +75,23 @@ class ARIMAParameterOptimizerAIC:
             for d in range(self.max_d + 1):
                 for q in range(self.max_q + 1):
                     try:
-                        # Fit ARIMA on full time series
-                        model = ARIMA(self.ts, order=(p, d, q))
+                        model = ARIMA(train_ts, order=(p, d, q))
                         fitted_model = model.fit()
+                        forecast = fitted_model.get_forecast(steps=len(test_ts))
+                        predictions = forecast.predicted_mean
                         
-                        # Get AIC
-                        aic = fitted_model.aic
-                        self.results_history[(p, d, q)] = aic
+                        # Handle both Series and array
+                        if hasattr(predictions, 'values'):
+                            predictions = predictions.values
+                        else:
+                            predictions = np.asarray(predictions)
+                        
+                        mape = self.calculate_mape(test_ts, predictions)
+                        self.results_history[(p, d, q)] = mape
                         successful += 1
                         
-                        # Update best (lower AIC is better)
-                        if aic < self.best_aic:
-                            self.best_aic = aic
+                        if mape < self.best_mape:
+                            self.best_mape = mape
                             self.best_order = (p, d, q)
                     except Exception as e:
                         self.results_history[(p, d, q)] = float('inf')
@@ -82,12 +99,12 @@ class ARIMAParameterOptimizerAIC:
         
         if self.best_order is None:
             self.best_order = (1, 1, 1)
-            self.best_aic = float('inf')
+            self.best_mape = float('inf')
             print(f"    Warning: No valid ARIMA model found, using default ARIMA{self.best_order}")
         else:
-            print(f"    Optimal order: ARIMA{self.best_order} with AIC: {self.best_aic:.4f}")
+            print(f"    Optimal order: ARIMA{self.best_order} with MAPE: {self.best_mape:.4f}")
         
-        return self.best_order, self.best_aic
+        return self.best_order, self.best_mape
     
     def get_best_order(self) -> tuple:
         """Return the best ARIMA order found"""
