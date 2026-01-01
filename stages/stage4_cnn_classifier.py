@@ -181,8 +181,8 @@ class CNNClassifier:
         """Predict ARIMA order for images"""
         self.model.eval()
         
-        # Transpose from NHWC to NCHW format for PyTorch
-        X = np.transpose(X, (0, 3, 1, 2))
+        # Transpose from NHWC to NCHW format for PyTorch. NumPy/TensorFlow use NHWC, PyTorch uses NCHW
+        X = np.transpose(X, Config.NHWC_TO_NCHW)
         X_tensor = torch.from_numpy(X.astype(np.float32)).to(self.device)
         
         with torch.no_grad():
