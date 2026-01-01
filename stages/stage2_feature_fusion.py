@@ -56,7 +56,24 @@ class InformationFusionFeatureAugmentation:
         
         kernel = np.ones((3, 3)) / 9
         channel2 = convolve2d(fused, kernel, mode='same')
-        
+        # Edge detection kernel: 8-neighbor Laplacian operator
+        # This is a well-established edge detection filter, not arbitrary numbers!
+        # 
+        # How it works:
+        # - Center value (+8): weights the current pixel
+        # - Surrounding values (-1 each): weights the 8 neighboring pixels
+        # - Sum = 0: makes it a "high-pass filter" that responds to changes
+        # 
+        # When convolved over the image:
+        # - Flat/uniform regions → output ≈ 0 (no edge)
+        # - Rapid intensity changes → large output (edge detected!)
+        # 
+        # Mathematical basis: discrete approximation of the 2D Laplacian (∇²f)
+        # which computes the second derivative to find areas of rapid change.
+        # 
+        # Alternative kernels you could try:
+        # - Laplacian 4-neighbor: [[0,-1,0], [-1,8,-1], [0,-1,0]] (only horizontal/vertical)
+        # - Sobel: Detects edges in specific directions (X or Y)
         edge_kernel = np.array([[-1, -1, -1],
                                 [-1,  8, -1],
                                 [-1, -1, -1]])
