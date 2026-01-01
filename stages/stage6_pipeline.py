@@ -40,7 +40,7 @@ Inference (predict):
 Main Methods:
 - prepare_data(): Prepare and encode all training data
 - train_and_validate(): Train and validate CNN
-- predict(): Make prediction on new time series
+- predict(): Make prediction on a new time series
 '''
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
