@@ -2,7 +2,7 @@
 Created on 17 Dec 2025
 
 @author: Dr. Mike
-Stage 3: ARIMA Parameter Optimization (AIC Version)
+Stage 3: ARIMA Parameter Optimisation (AIC Version)
 
 Alternative implementation using AIC (Akaike Information Criterion) instead of MAPE
 for selecting optimal ARIMA(p,d,q) parameters.
