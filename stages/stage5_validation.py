@@ -5,7 +5,7 @@ Created on 11 Dec 2025
 Stage 5: Model Validation and Evaluation
 
 Implements two validation schemes to evaluate CNN classifier performance
-and ensure robust generalization to unseen data.
+and ensure robust generalisation to unseen data.
 
 Validation Methods:
 
